@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPark – Đăng Nhập</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8f0fe;--border:#c5d5ea;--accent:#1a73e8;--green:#00897b;--red:#e53935;--text:#1a2332;--muted:#5f7a99;--font:'Syne',sans-serif;--mono:'Space Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;align-items:stretch;overflow:hidden}
+.left-panel{flex:1;background:linear-gradient(135deg,#1a73e8,#1557b0,#0d47a1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;position:relative;overflow:hidden}
+.left-panel::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:48px 48px;animation:gridMove 20s linear infinite}
+@keyframes gridMove{from{background-position:0 0}to{background-position:48px 48px}}
+.left-content{position:relative;z-index:1;text-align:center;max-width:400px}
+.brand-logo{width:72px;height:72px;background:rgba(255,255,255,.2);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px;box-shadow:0 0 40px rgba(255,255,255,.2)}
+.brand-name{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:8px;color:#fff}
+.brand-name span{color:#a8d4ff}
+.brand-sub{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:48px}
+.mini-grid{display:grid;grid-template-columns:repeat(8,28px);gap:4px;margin-bottom:32px}
+.mini-slot{width:28px;height:20px;border-radius:4px}
+.mini-slot.e{background:rgba(0,230,118,.25);border:1px solid rgba(0,230,118,.4)}
+.mini-slot.f{background:rgba(255,61,90,.25);border:1px solid rgba(255,61,90,.4)}
+.version-tag{font-size:11px;color:rgba(255,255,255,.5);font-family:var(--mono);border:1px solid rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;display:inline-block}
+.right-panel{width:460px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;border-left:1px solid var(--border)}
+.login-box{width:100%;max-width:360px}
+.login-title{font-size:26px;font-weight:800;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
+.form-group{margin-bottom:18px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;font-family:var(--mono)}
+input[type=text],input[type=password]{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:var(--font);font-size:15px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--accent)}
+input::placeholder{color:var(--muted)}
+.btn-login-submit{width:100%;background:var(--accent);color:var(--bg);border:none;border-radius:12px;padding:14px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-login-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,217,255,.3)}
+.error-msg{background:rgba(255,61,90,.12);border:1px solid rgba(255,61,90,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:12px}
+.back-link{display:block;text-align:center;margin-top:24px;font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
+.back-link:hover{color:var(--accent)}
+@media(max-width:800px){.left-panel{display:none}.right-panel{width:100%;border-left:none}}
+</style>
+</head>
+<body>
+<div class="left-panel">
+  <div class="left-content">
+    <div class="brand-logo">🅿</div>
+    <div class="brand-name">Smart<span>Park</span></div>
+    <div class="brand-sub">Hệ thống quản lý bãi đỗ xe thông minh<br>Theo dõi &amp; điều phối theo thời gian thực</div>
+    <div class="mini-grid" id="mini-grid"></div>
+    <div class="version-tag">v1.0.0 · Spring Boot</div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="login-box">
+    <div class="login-title">Đăng nhập</div>
+    <div class="login-sub">Nhập thông tin tài khoản của bạn</div>
+    <form th:action="@{/login}" method="post">
+      <div class="form-group">
+        <label>Tên đăng nhập</label>
+        <input type="text" name="username" placeholder="Nhập tài khoản..." required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-login-submit">Đăng nhập →</button>
+      <div class="error-msg" th:if="${error}" th:text="${error}"></div>
+    </form>
+    <a href="/map" class="back-link">← Xem bãi xe không cần đăng nhập</a>
+  </div>
+</div>
+<script>
+const grid = document.getElementById('mini-grid');
+for (let i = 0; i < 32; i++) {
+  const d = document.createElement('div');
+  d.className = 'mini-slot ' + (Math.random() > 0.45 ? 'f' : 'e');
+  grid.appendChild(d);
+}
+</script>
+</body>
+</html>

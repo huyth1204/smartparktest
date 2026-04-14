@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPark – Xem Bãi Đỗ Xe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0e1a;
+    --surface:   #111827;
+    --surface2:  #1a2235;
+    --border:    #1f2d45;
+    --accent:    #00d9ff;
+    --accent2:   #ff6b35;
+    --green:     #00e676;
+    --red:       #ff3d5a;
+    --yellow:    #ffd60a;
+    --text:      #e8edf5;
+    --muted:     #6b7a99;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--green);
+    font-family: var(--font-mono);
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .btn-login {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+  }
+  .btn-login:hover { opacity: 0.85; }
+
+  /* ── HERO STATS ── */
+  .stats-bar {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--font-mono);
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    line-height: 1;
+  }
+
+  .stat-value.green { color: var(--green); }
+  .stat-value.red   { color: var(--red); }
+  .stat-value.blue  { color: var(--accent); }
+
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+  }
+
+  .occupancy-bar {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+  }
+
+  .occ-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+  }
+
+  .occ-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .occ-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── ZONE TABS ── */
+  .zone-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .zone-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .zone-tab.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,217,255,0.08);
+  }
+
+  .zone-tab-count {
+    background: var(--border);
+    color: var(--text);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  .zone-tab.active .zone-tab-count {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* ── PARKING MAP ── */
+  .map-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .map-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+  }
+
+  .legend-dot.empty  { background: var(--green); }
+  .legend-dot.filled { background: var(--red); }
+  .legend-dot.selected { background: var(--yellow); }
+
+  /* Row labels */
+  .parking-grid-wrap {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .row-label-area {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .col-labels {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+    margin-left: 36px;
+  }
+
+  .col-label {
+    width: 52px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .row-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .row-label {
+    width: 30px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .parking-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .parking-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .slot {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: all 0.2s;
+    position: relative;
+    font-size: 10px;
+    font-family: var(--font-mono);
+  }
+
+  .slot.empty {
+    background: rgba(0,230,118,0.12);
+    border-color: rgba(0,230,118,0.35);
+    color: var(--green);
+  }
+
+  .slot.filled {
+    background: rgba(255,61,90,0.12);
+    border-color: rgba(255,61,90,0.35);
+    color: var(--red);
+  }
+
+  .slot-icon { font-size: 20px; line-height: 1; }
+  .slot-code { font-size: 9px; margin-top: 1px; opacity: 0.7; }
+
+  .slot.empty:hover {
+    background: rgba(0,230,118,0.2);
+    border-color: var(--green);
+    transform: scale(1.05);
+  }
+
+  .slot.filled:hover {
+    background: rgba(255,61,90,0.2);
+    border-color: var(--red);
+    transform: scale(1.05);
+  }
+
+  /* Road divider */
+  .road-divider {
+    height: 28px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent, transparent 12px,
+      rgba(255,214,10,0.2) 12px, rgba(255,214,10,0.2) 20px
+    );
+    border-radius: 4px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: rgba(255,214,10,0.5);
+    letter-spacing: 3px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  /* ── TOOLTIP ── */
+  .tooltip-box {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .tooltip-box.show { display: block; }
+  .tt-title { font-weight: 700; margin-bottom: 6px; color: var(--accent); }
+  .tt-row { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); }
+  .tt-row span:last-child { color: var(--text); font-family: var(--font-mono); }
+
+  /* ── SEARCH BAR ── */
+  .search-area {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: var(--font-head);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .search-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: var(--text);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .search-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── NOTICE ── */
+  .notice {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+  }
+
+  .notice-icon { font-size: 40px; margin-bottom: 12px; }
+  .notice p { font-size: 14px; line-height: 1.7; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    margin-top: 40px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    header { padding: 0 16px; }
+    .stats-bar { padding: 16px; gap: 16px; }
+    .main { padding: 20px 16px; }
+    .col-label, .slot { width: 40px; }
+    .slot { height: 40px; }
+    .slot-icon { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🅿</div>
+    Smart<span>Park</span>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+    <a href="login.html" class="btn-login">Đăng nhập</a>
+  </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-label">Tổng ô</div>
+    <div class="stat-value blue" id="total-slots">90</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-label">Ô trống</div>
+    <div class="stat-value green" id="empty-slots">53</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-label">Đang đỗ</div>
+    <div class="stat-value red" id="filled-slots">37</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="occupancy-bar">
+    <div class="occ-label">
+      <span>Mức sử dụng</span>
+      <span id="occ-pct">41%</span>
+    </div>
+    <div class="occ-track">
+      <div class="occ-fill" id="occ-fill" style="width:41%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ZONE TABS -->
+  <div class="zone-tabs">
+    <button class="zone-tab active" onclick="switchZone('motorbike', this)">
+      🏍️ Khu Xe Máy
+      <span class="zone-tab-count" id="moto-count">32 trống</span>
+    </button>
+    <button class="zone-tab" onclick="switchZone('car', this)">
+      🚗 Khu Ô Tô
+      <span class="zone-tab-count" id="car-count">21 trống</span>
+    </button>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-area">
+    <input class="search-input" type="text" id="search-plate" placeholder="🔍  Tìm ô đỗ theo mã (VD: A1, B3...)">
+    <button class="search-btn" onclick="searchSlot()">Tìm</button>
+    <button class="search-btn" onclick="clearSearch()">Xoá</button>
+  </div>
+
+  <!-- PARKING MAP -->
+  <div class="map-container">
+    <div class="map-header">
+      <div class="map-title" id="zone-title">🏍️ Khu Xe Máy – Sơ Đồ Bãi</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot empty"></div> Ô trống</div>
+        <div class="legend-item"><div class="legend-dot filled"></div> Đang có xe</div>
+      </div>
+    </div>
+
+    <div class="parking-grid-wrap">
+      <div id="parking-map"></div>
+    </div>
+  </div>
+
+  <!-- Notice -->
+  <div class="notice">
+    <div class="notice-icon">ℹ️</div>
+    <p>Sơ đồ cập nhật theo thời gian thực. Bấm vào ô để xem thông tin chi tiết.<br>
+    Để gửi xe, vui lòng đến quầy nhân viên – nhân viên sẽ chỉ định ô đỗ.</p>
+  </div>
+
+</div>
+
+<footer>SmartPark v1.0 · Hệ thống quản lý bãi đỗ xe · Cập nhật lúc <span id="last-update"></span></footer>
+
+<!-- TOOLTIP -->
+<div class="tooltip-box" id="tooltip"></div>
+
+<script>
+// ── DATA MODEL ──
+const zones = {
+  motorbike: { title: '🏍️ Khu Xe Máy – Sơ Đồ Bãi', rows: ['A','B','C','D','E'], cols: 10, slots: {} },
+  car:       { title: '🚗 Khu Ô Tô – Sơ Đồ Bãi',   rows: ['A','B','C'],         cols: 6,  slots: {} }
+};
+
+let currentZone = 'motorbike';
+
+// Tải dữ liệu từ API
+async function loadSlots() {
+  try {
+    const res = await fetch('/api/slots');
+    const slots = await res.json();
+    // Reset
+    ['motorbike','car'].forEach(z => zones[z].slots = {});
+    slots.forEach(s => {
+      if (zones[s.zone]) {
+        zones[s.zone].slots[s.id] = {
+          id: s.id,
+          filled: s.occupied,
+          plate: s.licensePlate,
+          checkin: s.checkinTime
+        };
+      }
+    });
+  } catch(e) {
+    console.error('Lỗi tải dữ liệu:', e);
+  }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch('/api/slots/stats');
+    const s = await res.json();
+    document.getElementById('total-slots').textContent = s.total;
+    document.getElementById('empty-slots').textContent = s.empty;
+    document.getElementById('filled-slots').textContent = s.filled;
+    const pct = s.total > 0 ? Math.round(s.filled / s.total * 100) : 0;
+    document.getElementById('occ-pct').textContent = pct + '%';
+    document.getElementById('occ-fill').style.width = pct + '%';
+    document.getElementById('moto-count').textContent = s.motoEmpty + ' trống';
+    document.getElementById('car-count').textContent  = s.carEmpty  + ' trống';
+    const fill = document.getElementById('occ-fill');
+    if (pct < 50) fill.style.background = 'linear-gradient(90deg,#00e676,#ffd60a)';
+    else if (pct < 80) fill.style.background = 'linear-gradient(90deg,#ffd60a,#ff6b35)';
+    else fill.style.background = 'linear-gradient(90deg,#ff6b35,#ff3d5a)';
+  } catch(e) {}
+}
+
+function buildMap(zoneName) {
+  const z = zones[zoneName];
+  const map = document.getElementById('parking-map');
+
+  // Column labels
+  let html = '<div class="col-labels"><div style="width:30px"></div>';
+  for (let c = 1; c <= z.cols; c++) {
+    html += `<div class="col-label">${c}</div>`;
+  }
+  html += '</div>';
+
+  html += '<div class="row-label-area"><div class="row-labels">';
+  z.rows.forEach(row => {
+    html += `<div class="row-label">${row}</div>`;
+  });
+  html += '</div><div class="parking-rows">';
+
+  z.rows.forEach((row, ri) => {
+    if (ri > 0 && ri % 2 === 0) {
+      html += `</div><div class="road-divider">· · · · · · · · · ĐƯỜNG NỘI BỘ · · · · · · · · ·</div><div class="parking-rows">`;
+    }
+    html += '<div class="parking-row">';
+    for (let c = 1; c <= z.cols; c++) {
+      const prefix = zoneName === 'car' ? 'C-' : 'M-';
+      const id = `${prefix}${row}${c}`;
+      const displayId = `${row}${c}`;
+      const s = z.slots[id];
+      if (!s) { html += `<div class="slot empty"><div class="slot-code">${displayId}</div></div>`; continue; }
+      const cls = s.filled ? 'filled' : 'empty';
+      const icon = s.filled ? (zoneName === 'car' ? '🚗' : '🏍️') : '';
+      html += `<div class="slot ${cls}" id="slot-${zoneName}-${id}"
+        data-id="${id}" data-zone="${zoneName}"
+        onmouseenter="showTip(event,'${id}','${zoneName}')"
+        onmouseleave="hideTip()">
+        <div class="slot-icon">${icon}</div>
+        <div class="slot-code">${displayId}</div>
+      </div>`;
+    }
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+  map.innerHTML = html;
+}
+
+function updateStats() {
+  // Đã được xử lý bởi loadStats()
+}
+
+function switchZone(zoneName, btn) {
+  currentZone = zoneName;
+  document.querySelectorAll('.zone-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('zone-title').textContent = zones[zoneName].title;
+  buildMap(zoneName);
+}
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+function showTip(e, id, zone) {
+  const s = zones[zone].slots[id];
+  const status = s.filled
+    ? `<span style="color:var(--red)">● Đang có xe</span>`
+    : `<span style="color:var(--green)">● Ô trống</span>`;
+  tooltip.innerHTML = `
+    <div class="tt-title">Ô ${id}</div>
+    <div class="tt-row"><span>Trạng thái</span><span>${status}</span></div>
+    ${s.filled ? `<div class="tt-row"><span>Biển số</span><span>${s.plate}</span></div>` : ''}
+    ${s.filled ? `<div class="tt-row"><span>Giờ vào</span><span>${s.checkin}</span></div>` : ''}
+  `;
+  tooltip.classList.add('show');
+  moveTip(e);
+}
+
+function hideTip() { tooltip.classList.remove('show'); }
+
+document.addEventListener('mousemove', e => {
+  if (tooltip.classList.contains('show')) moveTip(e);
+});
+
+function moveTip(e) {
+  const x = e.clientX + 16, y = e.clientY - 8;
+  tooltip.style.left = Math.min(x, window.innerWidth - 200) + 'px';
+  tooltip.style.top = y + 'px';
+}
+
+function searchSlot() {
+  const q = document.getElementById('search-plate').value.trim().toUpperCase();
+  if (!q) return;
+  clearHighlights();
+  const z = zones[currentZone];
+  const found = Object.keys(z.slots).filter(id => id.includes(q));
+  found.forEach(id => {
+    const el = document.getElementById(`slot-${currentZone}-${id}`);
+    if (el) {
+      el.style.outline = '2px solid var(--yellow)';
+      el.style.transform = 'scale(1.1)';
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  });
+  if (!found.length) alert('Không tìm thấy ô: ' + q);
+}
+
+function clearSearch() {
+  document.getElementById('search-plate').value = '';
+  clearHighlights();
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.slot').forEach(el => {
+    el.style.outline = '';
+    el.style.transform = '';
+  });
+}
+
+// Update clock
+function tick() {
+  document.getElementById('last-update').textContent =
+    new Date().toLocaleString('vi', {hour:'2-digit',minute:'2-digit',second:'2-digit', day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+// Refresh dữ liệu thực từ API mỗi 15 giây
+async function refreshData() {
+  await loadSlots();
+  await loadStats();
+  buildMap(currentZone);
+}
+
+// Init
+async function init() {
+  await loadSlots();
+  await loadStats();
+  buildMap('motorbike');
+  tick();
+  setInterval(tick, 1000);
+  setInterval(refreshData, 15000);
+}
+
+init();
+</script>
+</body>
+</html>

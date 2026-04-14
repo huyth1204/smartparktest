@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: smartpark
+    runtime: docker
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartpark-db
+          property: connectionString
+      - key: app.bank.account
+        value: 0707561652
+      - key: app.bank.owner
+        value: NGUYEN THANH HUY
+      - key: app.bank.name
+        value: MB
+
+databases:
+  - name: smartpark-db
+    plan: free
+    databaseName: smartparkdb
+    user: smartpark
