@@ -15,7 +15,6 @@ public class StaffAccount {
     private String fullName;
     private String username;
     private String password;
-    private String email;
     private String role;   // staff / admin
     private boolean active;
 
