@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPark – Nhân Viên</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8f0fe;--border:#c5d5ea;--accent:#1a73e8;--green:#00897b;--red:#e53935;--yellow:#f9a825;--orange:#ef6c00;--text:#1a2332;--muted:#5f7a99;--font:'Syne',sans-serif;--mono:'Space Mono',monospace;--sidebar:240px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:18px;font-weight:800}.logo-text span{color:var(--accent)}
+.sidebar-user{padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px}
+.user-name{font-weight:700}.user-role{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:2px}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{padding:8px 20px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-family:var(--mono)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .15s;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(0,0,0,.04)}
+.nav-item.active{color:var(--accent);background:rgba(26,115,232,.08);border-left-color:var(--accent)}
+.nav-icon{font-size:16px;width:20px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.btn-logout{width:100%;background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);border-radius:8px;padding:8px;color:var(--red);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);font-family:var(--mono)}
+.clock{color:var(--accent);font-weight:700}
+.content{flex:1;overflow-y:auto;padding:24px}
+.tab-view{display:none}.tab-view.active{display:block}
+.quick-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.qs-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.qs-label{font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.qs-value{font-size:28px;font-weight:800;font-family:var(--mono)}
+.qs-value.green{color:var(--green)}.qs-value.red{color:var(--red)}.qs-value.blue{color:var(--accent)}.qs-value.yellow{color:var(--yellow)}
+.zone-row{display:flex;gap:8px;margin-bottom:16px}
+.zone-pill{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.zone-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(26,115,232,.08)}
+.map-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+.map-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.map-card-title{font-size:15px;font-weight:700}
+.legend{display:flex;gap:14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+.legend-dot.empty{background:var(--green)}.legend-dot.filled{background:var(--red)}
+.grid-body{display:flex;gap:12px}
+.row-lbls{display:flex;flex-direction:column;gap:5px;padding-top:2px}
+.row-lbl{width:30px;height:46px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);font-family:var(--mono)}
+.grid-rows{display:flex;flex-direction:column;gap:5px}
+.grid-row{display:flex;gap:5px}
+.slot{width:46px;height:46px;border-radius:7px;border:1.5px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.slot.empty{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.3);color:var(--green)}
+.slot.filled{background:rgba(255,61,90,.1);border-color:rgba(255,61,90,.3);color:var(--red)}
+.slot:hover{filter:brightness(1.3);transform:scale(1.06)}
+.slot-icon{font-size:18px;line-height:1}.slot-code{font-size:8px;font-family:var(--mono);margin-top:1px;opacity:.7}
+.road-div{height:22px;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(255,214,10,.15) 10px,rgba(255,214,10,.15) 18px);border-radius:4px;margin:4px 0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,214,10,.4);letter-spacing:3px;font-family:var(--mono)}
+.action-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+.action-title{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);margin-bottom:16px}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-action{padding:14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-action:hover{transform:translateY(-2px)}
+.btn-action.green{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.4);color:var(--green)}
+.btn-action.red{background:rgba(255,61,90,.1);border-color:rgba(255,61,90,.4);color:var(--red)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;width:420px;max-width:95vw;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:var(--mono);margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.btn-confirm{flex:1;padding:12px;border-radius:10px;border:none;font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.btn-confirm.primary{background:var(--accent);color:var(--bg)}.btn-confirm.primary:hover{opacity:.85}
+.btn-confirm.cancel{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.ticket{background:white;color:#1a1a1a;border-radius:14px;padding:20px;font-family:var(--mono);margin-top:16px}
+.ticket-header{text-align:center;border-bottom:2px dashed #ccc;padding-bottom:12px;margin-bottom:12px}
+.ticket-brand{font-size:22px;font-weight:700;letter-spacing:2px}
+.ticket-type{font-size:12px;color:#666;margin-top:2px}
+.ticket-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed #eee}
+.ticket-row .k{color:#666}.ticket-row .v{font-weight:700}
+.ticket-slot{text-align:center;font-size:40px;font-weight:700;color:#0a0e1a;margin:12px 0;letter-spacing:4px}
+.ticket-footer{text-align:center;font-size:10px;color:#999;margin-top:12px;border-top:1px dashed #ccc;padding-top:10px}
+.search-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.search-row{display:flex;gap:10px;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none}
+.search-input:focus{border-color:var(--accent)}
+.btn-search{background:var(--accent);color:var(--bg);border:none;border-radius:10px;padding:10px 20px;font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer}
+.results-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.results-table th{text-align:left;padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border)}
+.results-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.results-table tr:last-child td{border-bottom:none}
+.badge{padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700}
+.badge.in{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.badge.out{background:rgba(107,122,153,.15);color:var(--muted);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🅿</div>
+    <div class="logo-text">Smart<span>Park</span></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-name" th:text="'👤 ' + ${user.fullName}">👤 Nhân Viên</div>
+    <div class="user-role" th:text="${#strings.toUpperCase(user.role)} + ' · Ca sáng'">NHÂN VIÊN · Ca sáng</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Quản lý</div>
+    <a class="nav-item active" onclick="showTab('map')"><span class="nav-icon">🗺️</span> Sơ đồ bãi xe</a>
+    <a class="nav-item" onclick="showTab('checkin')"><span class="nav-icon">🚗</span> Xe vào</a>
+    <a class="nav-item" onclick="showTab('checkout')"><span class="nav-icon">🚪</span> Xe ra</a>
+    <a class="nav-item" onclick="showTab('search')"><span class="nav-icon">🔍</span> Tra cứu xe</a>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="window.location.href='/logout'">⏏ Đăng xuất</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Sơ Đồ Bãi Xe</div>
+    <div class="topbar-right">
+      <span id="clock" class="clock"></span>
+      <span>|</span>
+      <span id="date-display"></span>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Flash messages -->
+    <div th:if="${success}" style="background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#00e676" th:text="${success}"></div>
+    <div th:if="${error}"   style="background:rgba(255,61,90,.12);border:1px solid rgba(255,61,90,.3);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#ff3d5a"   th:text="${error}"></div>
+
+    <!-- TAB: MAP -->
+    <div class="tab-view active" id="tab-map">
+      <div class="quick-stats">
+        <div class="qs-card"><div class="qs-label">Tổng ô</div><div class="qs-value blue" th:text="${total}">0</div></div>
+        <div class="qs-card"><div class="qs-label">Ô trống</div><div class="qs-value green" th:text="${empty}">0</div></div>
+        <div class="qs-card"><div class="qs-label">Đang đỗ</div><div class="qs-value red" th:text="${filled}">0</div></div>
+      </div>
+      <div class="zone-row">
+        <button class="zone-pill active" onclick="switchZone('moto',this)">🏍️ Xe máy</button>
+        <button class="zone-pill" onclick="switchZone('car',this)">🚗 Ô tô</button>
+      </div>
+      <div class="map-card">
+        <div class="map-card-header">
+          <div class="map-card-title" id="map-zone-title">🏍️ Khu Xe Máy</div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot empty"></div>Trống</div>
+            <div class="legend-item"><div class="legend-dot filled"></div>Có xe</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <div id="zone-moto"><div id="map-moto"></div></div>
+          <div id="zone-car" style="display:none"><div id="map-car"></div></div>
+        </div>
+      </div>
+      <div class="action-panel">
+        <div class="action-title">Thao tác nhanh</div>
+        <div class="action-grid">
+          <button class="btn-action green" onclick="showTab('checkin')">🚗 ＋ Ghi nhận xe vào</button>
+          <button class="btn-action red"   onclick="showTab('checkout')">🚪 Ghi nhận xe ra</button>
+          <button class="btn-action"       onclick="showTab('search')">🔍 Tra cứu biển số</button>
+          <button class="btn-action"       onclick="location.reload()">🔄 Làm mới dữ liệu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CHECKIN -->
+    <div class="tab-view" id="tab-checkin">
+      <div class="map-card">
+        <div class="map-card-title" style="margin-bottom:14px">🚗 Ghi Nhận Xe Vào</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Bấm vào ô trống trên sơ đồ để chọn, hoặc nhập trực tiếp bên dưới</p>
+        <div class="field"><label>Mã ô đỗ</label><input type="text" id="ci-slot" placeholder="VD: M-A1, C-B3..." ></div>
+        <div class="field"><label>Biển số xe</label><input type="text" id="ci-plate" placeholder="VD: 51A-12345" style="text-transform:uppercase"></div>
+        <button class="btn-confirm primary" style="width:100%;margin-top:8px" onclick="doCheckin()">✓ Xác nhận xe vào & In vé</button>
+        <div id="ci-msg" style="margin-top:10px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- TAB: CHECKOUT -->
+    <div class="tab-view" id="tab-checkout">
+      <div class="map-card">
+        <div class="map-card-title" style="margin-bottom:14px">🚪 Ghi Nhận Xe Ra</div>
+        <form th:action="@{/staff/checkout}" method="post">
+          <div class="field"><label>Mã ô đỗ</label><input type="text" name="slotId" id="co-slot" placeholder="VD: A1, B3..." required></div>
+          <button type="submit" class="btn-confirm primary" style="width:100%;margin-top:8px;background:var(--red)">✓ Xác nhận xe ra</button>
+        </form>
+        <!-- Danh sách xe đang đỗ -->
+        <div style="margin-top:20px">
+          <div style="font-size:12px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Xe đang trong bãi</div>
+          <table class="results-table">
+            <thead><tr><th>Ô đỗ</th><th>Biển số</th><th>Khu</th><th>Giờ vào</th></tr></thead>
+            <tbody>
+              <tr th:each="slot : ${motoSlots}" th:if="${slot.occupied}">
+                <td style="font-weight:700" th:text="${slot.id}"></td>
+                <td style="color:var(--accent)" th:text="${slot.licensePlate}"></td>
+                <td>🏍️ Xe máy</td>
+                <td th:text="${slot.checkinTime}"></td>
+              </tr>
+              <tr th:each="slot : ${carSlots}" th:if="${slot.occupied}">
+                <td style="font-weight:700" th:text="${slot.id}"></td>
+                <td style="color:var(--accent)" th:text="${slot.licensePlate}"></td>
+                <td>🚗 Ô tô</td>
+                <td th:text="${slot.checkinTime}"></td>
+              </tr>
+              <tr th:if="${filled == 0}">
+                <td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Bãi xe đang trống</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SEARCH -->
+    <div class="tab-view" id="tab-search">
+      <div class="map-card">
+        <div class="map-card-title" style="margin-bottom:14px">🔍 Xe Đang Trong Bãi</div>
+        <table class="results-table">
+          <thead><tr><th>Biển số</th><th>Khu</th><th>Ô đỗ</th><th>Giờ vào</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+            <tr th:each="slot : ${motoSlots}" th:if="${slot.occupied}">
+              <td style="color:var(--accent);font-weight:700" th:text="${slot.licensePlate}"></td>
+              <td>🏍️ Xe máy</td>
+              <td style="font-weight:700" th:text="${slot.id}"></td>
+              <td th:text="${slot.checkinTime}"></td>
+              <td><span class="badge in">Đang đỗ</span></td>
+            </tr>
+            <tr th:each="slot : ${carSlots}" th:if="${slot.occupied}">
+              <td style="color:var(--accent);font-weight:700" th:text="${slot.licensePlate}"></td>
+              <td>🚗 Ô tô</td>
+              <td style="font-weight:700" th:text="${slot.id}"></td>
+              <td th:text="${slot.checkinTime}"></td>
+              <td><span class="badge in">Đang đỗ</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Xe ra -->
+<div class="overlay" id="modal-checkout">
+  <div class="modal">
+    <div class="modal-title">🚪 Xác Nhận Xe Ra</div>
+    <div class="modal-sub">Ô: <strong id="co-slot-label" style="color:var(--accent)">—</strong> · Biển số: <strong id="co-plate-label" style="color:var(--yellow)">—</strong></div>
+    <div id="co-msg" style="font-size:13px;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-confirm cancel" onclick="closeModal('modal-checkout')">Huỷ</button>
+      <button type="button" class="btn-confirm primary" style="background:var(--red)" onclick="doCheckout()">✓ Xác nhận xe ra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: In vé -->
+<div class="overlay" id="modal-ticket">
+  <div class="modal">
+    <div class="modal-title">🎫 Vé Xe</div>
+    <div class="modal-sub">In vé cho khách</div>
+    <div id="ticket-content"></div>
+    <div class="modal-actions">
+      <button class="btn-confirm cancel" onclick="closeModal('modal-ticket')">Đóng</button>
+      <button class="btn-confirm primary" onclick="window.print()">🖨️ In vé</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="modal-slot">
+  <div class="modal">
+    <div class="modal-title">🚗 Xe Vào Bãi</div>
+    <div class="modal-sub">Ô đã chọn: <strong id="selected-slot-label" style="color:var(--accent)">—</strong></div>
+    <input type="hidden" id="modal-slot-id">
+    <div class="field"><label>Biển số xe</label><input type="text" id="modal-plate" placeholder="VD: 51A-12345" style="text-transform:uppercase"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-confirm cancel" onclick="closeModal('modal-slot')">Huỷ</button>
+      <button type="button" class="btn-confirm primary" onclick="doCheckinFromModal()">✓ Xác nhận & In vé</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function doCheckin() {
+  const slotId = document.getElementById('ci-slot').value.trim().toUpperCase();
+  const plate  = document.getElementById('ci-plate').value.trim().toUpperCase();
+  const msg    = document.getElementById('ci-msg');
+  if (!slotId || !plate) { msg.style.color='var(--red)'; msg.textContent='Vui lòng nhập đủ thông tin'; return; }
+
+  try {
+    const res  = await fetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotId, licensePlate: plate })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      msg.style.color = 'var(--red)';
+      msg.textContent = data.message || 'Lỗi không xác định';
+      return;
+    }
+    const slot = data.data || data;
+    const now  = new Date();
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✓ Xe ' + plate + ' đã vào ô ' + slotId;
+    document.getElementById('ticket-content').innerHTML = `
+      <div class="ticket">
+        <div class="ticket-header">
+          <div class="ticket-brand">🅿 SMARTPARK</div>
+          <div class="ticket-type">VÉ GỬI XE</div>
+        </div>
+        <div class="ticket-slot">${slotId}</div>
+        <div class="ticket-row"><span class="k">Ô đỗ</span><span class="v">${slotId}</span></div>
+        <div class="ticket-row"><span class="k">Biển số</span><span class="v">${plate}</span></div>
+        <div class="ticket-row"><span class="k">Giờ vào</span><span class="v">${now.toLocaleString('vi')}</span></div>
+        <div class="ticket-footer">Giữ vé để xuất trình khi lấy xe</div>
+      </div>`;
+    document.getElementById('modal-ticket').classList.add('show');
+    document.getElementById('ci-slot').value  = '';
+    document.getElementById('ci-plate').value = '';
+    loadAndRenderMap();
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Lỗi kết nối server';
+  }
+}
+
+async function loadAndRenderMap() {
+  try {
+    const res = await fetch('/api/slots');
+    const data = await res.json();
+    const slots = data.data || data;
+    renderZone('map-moto', slots.filter(s => s.zone === 'motorbike'),
+               ['A','B','C','D','E'], 10, 'M-', 'motorbike', '🏍️');
+    renderZone('map-car',  slots.filter(s => s.zone === 'car'),
+               ['A','B','C'], 6, 'C-', 'car', '🚗');
+  } catch(e) { console.error('loadMap error', e); }
+}
+
+function renderZone(containerId, slots, rows, cols, prefix, zone, icon) {
+  const map = {};
+  slots.forEach(s => map[s.id] = s);
+  let html = '<div class="grid-body"><div class="row-lbls">';
+  rows.forEach(r => html += `<div class="row-lbl">${r}</div>`);
+  html += '</div><div class="grid-rows">';
+  rows.forEach((row, ri) => {
+    if (ri === 2 && zone === 'motorbike')
+      html += '<div class="road-div">· · · ĐƯỜNG NỘI BỘ · · ·</div>';
+    html += '<div class="grid-row">';
+    for (let c = 1; c <= cols; c++) {
+      const id = `${prefix}${row}${c}`;
+      const s = map[id];
+      const filled = s && (s.occupied || s.reserved);
+      const cls = filled ? 'filled' : 'empty';
+      const title = filled ? `${id} · ${s.licensePlate || 'Đặt trước'} · ${s.checkinTime || ''}` : `${id} · Trống`;
+      const click = filled ? `onclick="selectSlotCheckout(this)"` : `onclick="selectSlot(this)"`;
+      html += `<div class="slot ${cls}" data-id="${id}" data-zone="${zone}" data-plate="${s ? (s.licensePlate||'') : ''}" ${click} title="${title}">
+        <div class="slot-icon">${filled ? (s.reserved && !s.occupied ? '🔒' : icon) : ''}</div>
+        <div class="slot-code">${id}</div>
+      </div>`;
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const titles = { map:'Sơ Đồ Bãi Xe', checkin:'Xe Vào', checkout:'Xe Ra', search:'Tra Cứu Xe' };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  const navMap = { map:0, checkin:1, checkout:2, search:3 };
+  const items = document.querySelectorAll('.nav-item');
+  if (items[navMap[name]]) items[navMap[name]].classList.add('active');
+  if (name === 'map') loadAndRenderMap();
+}
+
+function switchZone(z, btn) {
+  document.querySelectorAll('.zone-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('zone-moto').style.display = z === 'moto' ? '' : 'none';
+  document.getElementById('zone-car').style.display  = z === 'car'  ? '' : 'none';
+  document.getElementById('map-zone-title').textContent = z === 'moto' ? '🏍️ Khu Xe Máy' : '🚗 Khu Ô Tô';
+}
+
+function selectSlot(el) {
+  const id = el.getAttribute('data-id');
+  const zone = el.getAttribute('data-zone');
+  document.getElementById('modal-slot-id').value = id;
+  document.getElementById('selected-slot-label').textContent = id + ' · ' + (zone === 'car' ? 'Khu Ô Tô' : 'Khu Xe Máy');
+  document.getElementById('ci-slot').value = id;
+  document.getElementById('modal-plate').value = '';
+  document.getElementById('modal-slot').classList.add('show');
+}
+
+function selectSlotCheckout(el) {
+  const id    = el.getAttribute('data-id');
+  const plate = el.getAttribute('data-plate') || '—';
+  document.getElementById('co-slot-label').textContent  = id;
+  document.getElementById('co-plate-label').textContent = plate;
+  document.getElementById('co-msg').textContent = '';
+  document.getElementById('modal-checkout').dataset.slotId = id;
+  document.getElementById('modal-checkout').classList.add('show');
+}
+
+async function doCheckout() {
+  const slotId = document.getElementById('modal-checkout').dataset.slotId;
+  const msg    = document.getElementById('co-msg');
+  try {
+    const res  = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotId })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      msg.style.color = 'var(--red)';
+      msg.textContent = data.message || 'Lỗi không xác định';
+      return;
+    }
+    closeModal('modal-checkout');
+    loadAndRenderMap();
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Lỗi kết nối server';
+  }
+}
+
+
+async function doCheckinFromModal() {
+  const slotId = document.getElementById('modal-slot-id').value;
+  const plate  = document.getElementById('modal-plate').value.trim().toUpperCase();
+  if (!plate) { alert('Vui lòng nhập biển số'); return; }
+  document.getElementById('ci-slot').value  = slotId;
+  document.getElementById('ci-plate').value = plate;
+  closeModal('modal-slot');
+  await doCheckin();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('vi', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('date-display').textContent = now.toLocaleDateString('vi', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+loadAndRenderMap();
+setInterval(loadAndRenderMap, 15000);
+</script>
+</body>
+</html>
