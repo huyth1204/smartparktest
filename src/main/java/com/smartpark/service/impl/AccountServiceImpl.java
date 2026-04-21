@@ -39,8 +39,10 @@ public class AccountServiceImpl implements AccountService {
         String prefix = "admin".equals(role) ? "AD" : "NV";
         StaffAccount acc = new StaffAccount(
                 prefix + String.format("%03d", count + 1),
-                fullName, username, passwordEncoder.encode(password), role
+                fullName, username, null, passwordEncoder.encode(password), role
         );
+        acc.setVerified(true);
+        acc.setActive(true);
         return staffRepo.save(acc);
     }
 

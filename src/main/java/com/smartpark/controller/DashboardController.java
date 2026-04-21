@@ -175,12 +175,15 @@ public class DashboardController {
         String code = prefix + String.format("%03d", count + 1);
         
         String tempPassword = password; // Lưu mật khẩu tạm để gửi email
-        StaffAccount acc = new StaffAccount(code, fullName.trim(), username.trim(), passwordEncoder.encode(password), role);
+        String emailToUse = StringUtils.hasText(email) ? email.trim().toLowerCase() : null;
+        StaffAccount acc = new StaffAccount(code, fullName.trim(), username.trim(), emailToUse, passwordEncoder.encode(password), role);
         
         if (StringUtils.hasText(email)) {
-            acc.setEmail(email.trim().toLowerCase());
             acc.setVerified(false); // Chưa xác nhận
             acc.setActive(false);   // Chưa kích hoạt
+        } else {
+            acc.setVerified(true);
+            acc.setActive(true);
         }
         
         staffRepo.save(acc);
