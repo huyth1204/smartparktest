@@ -43,37 +43,6 @@ public class DashboardController {
         this.verificationService  = verificationService;
     }
 
-    // ── LOGIN ─────────────────────────────────────────────────────────────────
-
-    @GetMapping("/login")
-    public String loginPage() { return "login"; }
-
-    @PostMapping("/login")
-    public String doLogin(@RequestParam String username,
-                          @RequestParam String password,
-                          HttpSession session, Model model) {
-        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
-            model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin");
-            return "login";
-        }
-        return staffRepo.findByUsername(username.trim())
-                .filter(acc -> passwordEncoder.matches(password, acc.getPassword()))
-                .map(acc -> {
-                    session.setAttribute("user", acc);
-                    return "admin".equals(acc.getRole()) ? "redirect:/admin" : "redirect:/staff";
-                })
-                .orElseGet(() -> {
-                    model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
-                    return "login";
-                });
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
-    }
-
     // ── VERIFY ACCOUNT ────────────────────────────────────────────────────────
 
     @GetMapping("/verify-account")
