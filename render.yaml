@@ -12,6 +12,14 @@ services:
         fromDatabase:
           name: smartpark-db
           property: connectionString
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
       - key: app.bank.account
         value: 0707561652
       - key: app.bank.owner

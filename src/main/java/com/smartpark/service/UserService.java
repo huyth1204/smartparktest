@@ -18,8 +18,7 @@ public class UserService {
     @Autowired private UserRepository userRepo;
     @Autowired private PasswordResetTokenRepository tokenRepo;
     @Autowired private EmailService emailService;
-
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Autowired private BCryptPasswordEncoder encoder; // FIX: Inject instead of creating new instance
 
     // Đăng ký
     public boolean register(String username, String email, String rawPassword) {

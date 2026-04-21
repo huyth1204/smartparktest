@@ -34,6 +34,11 @@ public class BookingServiceImpl implements BookingService {
     public Booking createBooking(String customerName, String plate,
                                  String vehicleType,
                                  LocalDateTime checkIn, LocalDateTime checkOut) {
+        // Validate checkIn date is not in the past
+        if (checkIn.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Ngày check-in không được trong quá khứ");
+        }
+        
         // Sử dụng Strategy Pattern: lấy strategy tương ứng loại xe
         PricingStrategy pricing = pricingFactory.getStrategy(vehicleType);
 
@@ -54,11 +59,18 @@ public class BookingServiceImpl implements BookingService {
         if (content == null) return false;
         String upper = content.toUpperCase();
 
-        Optional<Booking> found = repo.findAll().stream()
-                .filter(b -> b.getPaymentCode() != null
-                          && upper.contains(b.getPaymentCode())
-                          && !"PAID".equals(b.getStatus()))
-                .findFirst();
+        // Extract payment code from content (format: "THANH TOAN SP123456")
+        // Find any occurrence of "SP" followed by 6 alphanumeric characters
+        String paymentCode = null;
+        int spIndex = upper.indexOf("SP");
+        if (spIndex != -1 && spIndex + 8 <= upper.length()) {
+            paymentCode = upper.substring(spIndex, spIndex + 8);
+        }
+        
+        if (paymentCode == null) return false;
+
+        // Use optimized query instead of findAll()
+        Optional<Booking> found = repo.findByPaymentCodeAndStatusNot(paymentCode, "PAID");
 
         if (found.isEmpty()) return false;
 

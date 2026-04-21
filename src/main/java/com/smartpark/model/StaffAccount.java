@@ -33,7 +33,6 @@ public class StaffAccount {
 
     @PrePersist
     public void prePersist() {
-        // Chỉ set active=true khi tạo mới (id chưa có), không override khi update
-        this.active = true;
+        // Không ghi đè active - để logic business quyết định
     }
 }

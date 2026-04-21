@@ -134,6 +134,7 @@ public class DataInitializer implements CommandLineRunner {
         booking.setVehicleType(vehicleType);
         booking.setCheckIn(checkIn);
         booking.setStatus("PENDING");
+        booking.setPaymentCode(generatePaymentCode()); // FIX: Generate paymentCode
         bookingRepo.save(booking);
     }
     
@@ -148,6 +149,20 @@ public class DataInitializer implements CommandLineRunner {
         booking.setStatus("PAID");
         booking.setAmountDue(amount);
         booking.setPaidAt(checkOut);
+        booking.setPaymentCode(generatePaymentCode()); // FIX: Generate paymentCode
         bookingRepo.save(booking);
+    }
+    
+    /**
+     * Generate payment code (format: SP + 6 random characters)
+     */
+    private String generatePaymentCode() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        StringBuilder sb = new StringBuilder("SP");
+        java.util.Random rnd = new java.util.Random();
+        for (int i = 0; i < 6; i++) {
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 }

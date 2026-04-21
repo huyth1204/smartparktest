@@ -3,7 +3,9 @@ package com.smartpark.repository;
 import com.smartpark.model.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByOrderByCreatedAtDesc();
+    Optional<Booking> findByPaymentCodeAndStatusNot(String paymentCode, String status);
 }

@@ -49,11 +49,50 @@ public class DashboardController {
     public String verifyAccountPage(@RequestParam String token, Model model) {
         String result = verificationService.verifyAccount(token);
         if ("OK".equals(result)) {
-            model.addAttribute("success", "Xác nhận tài khoản thành công! Bạn có thể đăng nhập ngay.");
+            model.addAttribute("token", token);
+            return "set-password";
         } else {
             model.addAttribute("error", result);
+            return "login";
         }
-        return "login";
+    }
+
+    // ── SET PASSWORD ──────────────────────────────────────────────────────────
+
+    @GetMapping("/set-password")
+    public String setPasswordPage(@RequestParam String token, Model model) {
+        // Validate token first
+        String validation = verificationService.validateToken(token);
+        if (!"OK".equals(validation)) {
+            model.addAttribute("error", validation);
+            return "login";
+        }
+        model.addAttribute("token", token);
+        return "set-password";
+    }
+
+    @PostMapping("/set-password")
+    public String doSetPassword(@RequestParam String token,
+                                @RequestParam String password,
+                                @RequestParam String confirmPassword,
+                                RedirectAttributes ra) {
+        if (!password.equals(confirmPassword)) {
+            ra.addFlashAttribute("error", "Mật khẩu xác nhận không khớp");
+            return "redirect:/set-password?token=" + token;
+        }
+        
+        if (password.length() < 6) {
+            ra.addFlashAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự");
+            return "redirect:/set-password?token=" + token;
+        }
+        
+        String result = verificationService.setPassword(token, password);
+        if ("OK".equals(result)) {
+            ra.addFlashAttribute("success", "Đặt mật khẩu thành công! Bạn có thể đăng nhập ngay.");
+        } else {
+            ra.addFlashAttribute("error", result);
+        }
+        return "redirect:/login";
     }
 
     // ── PUBLIC MAP ────────────────────────────────────────────────────────────
@@ -121,14 +160,13 @@ public class DashboardController {
     @PostMapping("/admin/accounts/add")
     public String addAccount(@RequestParam String fullName,
                              @RequestParam String username,
-                             @RequestParam String password,
                              @RequestParam(required = false) String email,
                              @RequestParam String role,
                              HttpSession session,
                              HttpServletRequest request,
                              RedirectAttributes ra) {
         if (requireAdmin(session) == null) return "redirect:/login";
-        if (!StringUtils.hasText(fullName) || !StringUtils.hasText(username) || !StringUtils.hasText(password)) {
+        if (!StringUtils.hasText(fullName) || !StringUtils.hasText(username)) {
             ra.addFlashAttribute("error", "Vui lòng nhập đầy đủ thông tin tài khoản");
             return "redirect:/admin";
         }
@@ -143,9 +181,12 @@ public class DashboardController {
                 .count();
         String code = prefix + String.format("%03d", count + 1);
         
-        String tempPassword = password; // Lưu mật khẩu tạm để gửi email
         String emailToUse = StringUtils.hasText(email) ? email.trim().toLowerCase() : null;
-        StaffAccount acc = new StaffAccount(code, fullName.trim(), username.trim(), emailToUse, passwordEncoder.encode(password), role);
+        // For accounts with email, password will be set during verification
+        // For accounts without email, set a temporary password that must be changed
+        String tempPassword = StringUtils.hasText(email) ? "" : "changeme123";
+        StaffAccount acc = new StaffAccount(code, fullName.trim(), username.trim(), emailToUse, 
+                                           StringUtils.hasText(email) ? "" : passwordEncoder.encode(tempPassword), role);
         
         if (StringUtils.hasText(email)) {
             acc.setVerified(false); // Chưa xác nhận
@@ -162,12 +203,10 @@ public class DashboardController {
             String baseUrl = request.getScheme() + "://" + request.getServerName()
                            + (request.getServerPort() != 80 && request.getServerPort() != 443 
                               ? ":" + request.getServerPort() : "");
-            verificationService.sendVerificationEmail(acc, baseUrl, tempPassword);
+            verificationService.sendVerificationEmail(acc, baseUrl);
             ra.addFlashAttribute("success", "Đã tạo tài khoản " + username.trim() + ". Email xác nhận đã được gửi đến " + email);
+            ra.addFlashAttribute("newAccountId", acc.getId());
         } else {
-            acc.setVerified(true);
-            acc.setActive(true);
-            staffRepo.save(acc);
             ra.addFlashAttribute("success", "Đã thêm tài khoản " + username.trim());
         }
         
@@ -205,6 +244,26 @@ public class DashboardController {
                 ()  -> ra.addFlashAttribute("error", "Không tìm thấy tài khoản")
         );
         return "redirect:/admin";
+    }
+
+    @GetMapping("/admin/accounts/verify-status/{id}")
+    @ResponseBody
+    public java.util.Map<String, String> getVerifyStatus(@PathVariable Long id, HttpSession session) {
+        if (requireAdmin(session) == null) {
+            return java.util.Map.of("status", "unauthorized");
+        }
+        
+        return staffRepo.findById(id)
+            .map(acc -> {
+                if (acc.isVerified() && acc.isActive()) {
+                    return java.util.Map.of("status", "verified");
+                } else if (verificationService.isTokenExpired(acc)) {
+                    return java.util.Map.of("status", "expired");
+                } else {
+                    return java.util.Map.of("status", "pending");
+                }
+            })
+            .orElse(java.util.Map.of("status", "not_found"));
     }
 
     @PostMapping("/admin/reset/slots")

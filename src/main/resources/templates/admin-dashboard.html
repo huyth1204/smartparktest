@@ -357,8 +357,7 @@ table.data-table{width:100%;border-collapse:collapse;font-size:13px}
     <form th:action="@{/admin/accounts/add}" method="post">
       <div class="field"><label>Họ tên</label><input type="text" name="fullName" placeholder="Nguyễn Văn A" required></div>
       <div class="field"><label>Tài khoản đăng nhập</label><input type="text" name="username" placeholder="nhanvien01" required></div>
-      <div class="field"><label>Email</label><input type="email" name="email" placeholder="example@gmail.com"></div>
-      <div class="field"><label>Mật khẩu</label><input type="password" name="password" placeholder="••••••••" required></div>
+      <div class="field"><label>Email (tùy chọn)</label><input type="email" name="email" placeholder="example@gmail.com"></div>
       <div class="field">
         <label>Vai trò</label>
         <select name="role">
@@ -371,6 +370,23 @@ table.data-table{width:100%;border-collapse:collapse;font-size:13px}
         <button type="submit" class="btn-confirm primary">✓ Lưu</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL: Đang chờ xác minh -->
+<div class="overlay" id="modal-verifying">
+  <div class="modal">
+    <div class="modal-title">⏳ Đang Chờ Xác Minh</div>
+    <div class="modal-sub">Email xác nhận đã được gửi đến nhân viên</div>
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:48px;margin-bottom:16px">📧</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:8px">Nhân viên cần click link trong email để xác nhận và đặt mật khẩu</div>
+      <div style="font-size:12px;color:var(--muted);font-family:var(--mono)">Link hết hạn sau 5 phút</div>
+      <div id="verify-status" style="margin-top:20px;font-size:13px;color:var(--accent);font-weight:600"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-confirm primary" onclick="closeVerifyModal()">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -415,6 +431,57 @@ function editAccountFromBtn(btn) {
   document.getElementById('edit-role').value     = btn.dataset.role;
   document.getElementById('modal-edit-account').classList.add('show');
 }
+
+// Polling for verification status
+let pollingInterval = null;
+let pollingAccountId = null;
+
+function startPolling(accountId) {
+  pollingAccountId = accountId;
+  document.getElementById('modal-verifying').classList.add('show');
+  document.getElementById('verify-status').textContent = 'Đang kiểm tra...';
+  
+  pollingInterval = setInterval(() => {
+    fetch('/admin/accounts/verify-status/' + accountId)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'verified') {
+          document.getElementById('verify-status').textContent = '✓ Đã xác minh thành công!';
+          document.getElementById('verify-status').style.color = 'var(--green)';
+          clearInterval(pollingInterval);
+          setTimeout(() => {
+            closeVerifyModal();
+            location.reload();
+          }, 2000);
+        } else if (data.status === 'expired') {
+          document.getElementById('verify-status').textContent = '⚠ Token đã hết hạn';
+          document.getElementById('verify-status').style.color = 'var(--red)';
+          clearInterval(pollingInterval);
+        } else if (data.status === 'pending') {
+          document.getElementById('verify-status').textContent = '⏳ Đang chờ nhân viên xác minh...';
+        }
+      })
+      .catch(err => {
+        console.error('Polling error:', err);
+      });
+  }, 2000);
+}
+
+function closeVerifyModal() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+  document.getElementById('modal-verifying').classList.remove('show');
+}
+
+// Check if we just created an account with email
+window.addEventListener('DOMContentLoaded', () => {
+  const newAccountId = /*[[${newAccountId}]]*/ null;
+  if (newAccountId) {
+    startPolling(newAccountId);
+  }
+});
 </script>
 </body>
 </html>

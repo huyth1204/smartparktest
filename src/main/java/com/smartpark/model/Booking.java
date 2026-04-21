@@ -13,7 +13,7 @@ public class Booking {
     private Long id;
 
     private String customerName;
-    private String Gmail;
+    private String email;
     private String licensePlate;
     private String vehicleType;       // xe_may / o_to
 
