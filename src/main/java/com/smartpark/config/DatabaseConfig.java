@@ -22,19 +22,25 @@ public class DatabaseConfig {
         String databaseUrl = System.getenv("DATABASE_URL");
         
         if (databaseUrl == null || databaseUrl.isEmpty()) {
+            System.err.println("WARNING: DATABASE_URL environment variable is not set!");
             throw new IllegalStateException("DATABASE_URL environment variable is not set");
         }
         
         try {
+            System.out.println("Parsing DATABASE_URL: " + databaseUrl.replaceAll(":[^:@]+@", ":****@")); // Hide password in logs
+            
             URI dbUri = new URI(databaseUrl);
             
-            String username = dbUri.getUserInfo().split(":")[0];
-            String password = dbUri.getUserInfo().split(":")[1];
+            String[] userInfo = dbUri.getUserInfo().split(":");
+            String username = userInfo[0];
+            String password = userInfo.length > 1 ? userInfo[1] : "";
             String host = dbUri.getHost();
             int port = dbUri.getPort();
             String database = dbUri.getPath().substring(1); // Remove leading "/"
             
             String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, database);
+            
+            System.out.println("Connecting to database: " + jdbcUrl);
             
             return DataSourceBuilder.create()
                     .url(jdbcUrl)
@@ -44,7 +50,11 @@ public class DatabaseConfig {
                     .build();
                     
         } catch (URISyntaxException e) {
+            System.err.println("ERROR: Invalid DATABASE_URL format: " + databaseUrl);
             throw new IllegalStateException("Invalid DATABASE_URL format: " + databaseUrl, e);
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to create DataSource: " + e.getMessage());
+            throw new IllegalStateException("Failed to create DataSource", e);
         }
     }
 }
