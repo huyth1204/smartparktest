@@ -77,27 +77,45 @@ public class DataInitializer {
         // Khởi tạo demo data: xe đang đỗ và lịch sử giao dịch - BATCH INSERT
         if (bookingRepo.count() == 0) {
             LocalDateTime now = LocalDateTime.now();
+            
+            // Lấy slots trống từ DB (10 xe máy + 5 ô tô)
+            java.util.List<ParkingSlot> availableMotoSlots = slotRepo.findAll().stream()
+                .filter(s -> s.getVehicleType().equals("motorbike") && !s.isOccupied())
+                .limit(10)
+                .collect(java.util.stream.Collectors.toList());
+            
+            java.util.List<ParkingSlot> availableCarSlots = slotRepo.findAll().stream()
+                .filter(s -> s.getVehicleType().equals("car") && !s.isOccupied())
+                .limit(5)
+                .collect(java.util.stream.Collectors.toList());
+            
             java.util.List<ParkingSlot> slotsToUpdate = new java.util.ArrayList<>();
             java.util.List<Booking> bookings = new java.util.ArrayList<>();
             
-            // 1. Xe đang đỗ (15 xe)
-            addParkedVehicle(slotsToUpdate, bookings, "M-A1", "Nguyễn Văn A", "29A-12345", "xe_may", now.minusHours(3));
-            addParkedVehicle(slotsToUpdate, bookings, "M-A5", "Trần Thị B", "30B-67890", "xe_may", now.minusHours(8));
-            addParkedVehicle(slotsToUpdate, bookings, "M-B2", "Lê Văn C", "51C-11111", "xe_may", now.minusHours(15));
-            addParkedVehicle(slotsToUpdate, bookings, "M-B7", "Phạm Thị D", "29D-22222", "xe_may", now.minusHours(20));
-            addParkedVehicle(slotsToUpdate, bookings, "M-C3", "Hoàng Văn E", "30E-33333", "xe_may", now.minusHours(5));
-            addParkedVehicle(slotsToUpdate, bookings, "M-C8", "Võ Thị F", "51F-44444", "xe_may", now.minusHours(10));
-            addParkedVehicle(slotsToUpdate, bookings, "M-D1", "Đặng Văn G", "29G-55555", "xe_may", now.minusHours(2));
-            addParkedVehicle(slotsToUpdate, bookings, "M-D9", "Bùi Thị H", "30H-66666", "xe_may", now.minusHours(18));
-            addParkedVehicle(slotsToUpdate, bookings, "M-E4", "Phan Văn I", "51I-77777", "xe_may", now.minusHours(7));
-            addParkedVehicle(slotsToUpdate, bookings, "M-E6", "Dương Thị K", "29K-88888", "xe_may", now.minusHours(12));
-            addParkedVehicle(slotsToUpdate, bookings, "C-A1", "Nguyễn Minh L", "29L-99999", "o_to", now.minusHours(4));
-            addParkedVehicle(slotsToUpdate, bookings, "C-A3", "Trần Văn M", "30M-10101", "o_to", now.minusHours(9));
-            addParkedVehicle(slotsToUpdate, bookings, "C-B2", "Lê Thị N", "51N-20202", "o_to", now.minusHours(14));
-            addParkedVehicle(slotsToUpdate, bookings, "C-B5", "Phạm Văn O", "29O-30303", "o_to", now.minusHours(6));
-            addParkedVehicle(slotsToUpdate, bookings, "C-C1", "Hoàng Thị P", "30P-40404", "o_to", now.minusHours(11));
+            // 1. Xe máy đang đỗ (10 xe)
+            if (availableMotoSlots.size() >= 10) {
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(0), "Nguyễn Văn A", "29A-12345", "xe_may", now.minusHours(3));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(1), "Trần Thị B", "30B-67890", "xe_may", now.minusHours(8));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(2), "Lê Văn C", "51C-11111", "xe_may", now.minusHours(15));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(3), "Phạm Thị D", "29D-22222", "xe_may", now.minusHours(20));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(4), "Hoàng Văn E", "30E-33333", "xe_may", now.minusHours(5));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(5), "Võ Thị F", "51F-44444", "xe_may", now.minusHours(10));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(6), "Đặng Văn G", "29G-55555", "xe_may", now.minusHours(2));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(7), "Bùi Thị H", "30H-66666", "xe_may", now.minusHours(18));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(8), "Phan Văn I", "51I-77777", "xe_may", now.minusHours(7));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableMotoSlots.get(9), "Dương Thị K", "29K-88888", "xe_may", now.minusHours(12));
+            }
             
-            // 2. Lịch sử giao dịch đã hoàn thành (28 giao dịch)
+            // 2. Ô tô đang đỗ (5 xe)
+            if (availableCarSlots.size() >= 5) {
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableCarSlots.get(0), "Nguyễn Minh L", "29L-99999", "o_to", now.minusHours(4));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableCarSlots.get(1), "Trần Văn M", "30M-10101", "o_to", now.minusHours(9));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableCarSlots.get(2), "Lê Thị N", "51N-20202", "o_to", now.minusHours(14));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableCarSlots.get(3), "Phạm Văn O", "29O-30303", "o_to", now.minusHours(6));
+                addParkedVehicleToSlot(slotsToUpdate, bookings, availableCarSlots.get(4), "Hoàng Thị P", "30P-40404", "o_to", now.minusHours(11));
+            }
+            
+            // 3. Lịch sử giao dịch đã hoàn thành (28 giao dịch)
             addCompletedBooking(bookings, "Nguyễn Văn Q", "29Q-50505", "xe_may", now.minusDays(1).minusHours(10), now.minusDays(1).minusHours(2), 15000L);
             addCompletedBooking(bookings, "Trần Thị R", "30R-60606", "xe_may", now.minusDays(1).minusHours(15), now.minusDays(1).minusHours(1), 30000L);
             addCompletedBooking(bookings, "Lê Văn S", "51S-70707", "xe_may", now.minusDays(2).minusHours(5), now.minusDays(2).minusHours(1), 15000L);
@@ -133,16 +151,13 @@ public class DataInitializer {
         }
     }
     
-    private void addParkedVehicle(java.util.List<ParkingSlot> slotsToUpdate, java.util.List<Booking> bookings, 
-                                  String slotId, String customerName, String licensePlate, String vehicleType, LocalDateTime checkIn) {
-        // Cập nhật parking slot
-        ParkingSlot slot = slotRepo.findById(slotId).orElse(null);
-        if (slot != null) {
-            slot.setOccupied(true);
-            slot.setLicensePlate(licensePlate);
-            slot.setCheckinTime(checkIn.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
-            slotsToUpdate.add(slot);
-        }
+    private void addParkedVehicleToSlot(java.util.List<ParkingSlot> slotsToUpdate, java.util.List<Booking> bookings, 
+                                        ParkingSlot slot, String customerName, String licensePlate, 
+                                        String vehicleType, LocalDateTime checkIn) {
+        slot.setOccupied(true);
+        slot.setLicensePlate(licensePlate);
+        slot.setCheckinTime(checkIn.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
+        slotsToUpdate.add(slot);
         
         // Tạo booking đang pending
         Booking booking = new Booking();
