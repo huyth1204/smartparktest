@@ -14,14 +14,16 @@ public class StaffAccount {
     private String staffCode; // NV001, AD001
     private String fullName;
     private String username;
+    private String email;
     private String password;
     private String role;   // staff / admin
     private boolean active;
 
-    public StaffAccount(String staffCode, String fullName, String username, String password, String role) {
+    public StaffAccount(String staffCode, String fullName, String username, String email, String password, String role) {
         this.staffCode = staffCode;
         this.fullName = fullName;
         this.username = username;
+        this.email = email;
         this.password = password;
         this.role = role;
         this.active = true;

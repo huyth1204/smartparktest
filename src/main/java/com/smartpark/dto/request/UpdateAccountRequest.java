@@ -12,6 +12,8 @@ public record UpdateAccountRequest(
         @Size(max = 100)
         String fullName,
 
+        String email,
+
         @NotBlank
         @Pattern(regexp = "^(admin|staff)$", message = "Vai trò chỉ là 'admin' hoặc 'staff'")
         String role,

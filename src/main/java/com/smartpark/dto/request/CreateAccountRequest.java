@@ -16,6 +16,8 @@ public record CreateAccountRequest(
         @Size(min = 3, max = 50, message = "Tên đăng nhập từ 3-50 ký tự")
         String username,
 
+        String email,
+
         @NotBlank(message = "Mật khẩu không được trống")
         @Size(min = 4, message = "Mật khẩu tối thiểu 4 ký tự")
         String password,

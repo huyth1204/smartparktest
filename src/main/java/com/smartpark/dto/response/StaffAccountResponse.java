@@ -11,6 +11,7 @@ public record StaffAccountResponse(
         String staffCode,
         String fullName,
         String username,
+        String email,
         String role,
         boolean active
 ) {
@@ -21,6 +22,7 @@ public record StaffAccountResponse(
                 entity.getStaffCode(),
                 entity.getFullName(),
                 entity.getUsername(),
+                entity.getEmail(),
                 entity.getRole(),
                 entity.isActive()
         );

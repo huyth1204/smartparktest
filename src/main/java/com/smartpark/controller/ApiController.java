@@ -137,7 +137,7 @@ public class ApiController {
         String code = prefix + String.format("%03d", count + 1);
 
         StaffAccount saved = staffRepo.save(
-                new StaffAccount(code, req.fullName(), req.username(), passwordEncoder.encode(req.password()), req.role()));
+                new StaffAccount(code, req.fullName(), req.username(), req.email(), passwordEncoder.encode(req.password()), req.role()));
         return ResponseEntity.ok(ApiResponse.success("Đã tạo tài khoản", StaffAccountResponse.from(saved)));
     }
 
@@ -146,6 +146,7 @@ public class ApiController {
             @PathVariable Long id, @Valid @RequestBody UpdateAccountRequest req) {
         return staffRepo.findById(id).map(acc -> {
             acc.setFullName(req.fullName());
+            acc.setEmail(req.email());
             acc.setRole(req.role());
             acc.setActive(req.active());
             if (req.password() != null && !req.password().isBlank())
