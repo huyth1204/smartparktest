@@ -18,6 +18,7 @@ public class StaffAccount {
     private String password;
     private String role;   // staff / admin
     private boolean active;
+    private boolean verified; // Email đã xác nhận chưa
 
     public StaffAccount(String staffCode, String fullName, String username, String email, String password, String role) {
         this.staffCode = staffCode;
@@ -27,6 +28,7 @@ public class StaffAccount {
         this.password = password;
         this.role = role;
         this.active = true;
+        this.verified = false; // Mặc định chưa xác nhận
     }
 
     @PrePersist

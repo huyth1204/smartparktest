@@ -47,9 +47,17 @@ public class DataInitializer implements CommandLineRunner {
 
         // Khởi tạo staff accounts
         if (staffRepo.count() == 0) {
-            staffRepo.save(new StaffAccount("AD001", "Admin Hệ Thống",  "admin",   "huyhgbv1204@gmail.com",           passwordEncoder.encode("admin123"), "admin"));
-            staffRepo.save(new StaffAccount("BV001", "Nguyễn Văn An",   "baove1",  "huynguyenthanh12406@gmail.com",   passwordEncoder.encode("baove123"), "staff"));
-            staffRepo.save(new StaffAccount("BV002", "Trần Thị Bình",   "baove2",  "huyth1204@gmail.com",             passwordEncoder.encode("baove123"), "staff"));
+            StaffAccount admin = new StaffAccount("AD001", "Admin Hệ Thống",  "admin",   "huyhgbv1204@gmail.com",           passwordEncoder.encode("admin123"), "admin");
+            admin.setVerified(true); // Tài khoản demo đã xác nhận
+            staffRepo.save(admin);
+            
+            StaffAccount baove1 = new StaffAccount("BV001", "Nguyễn Văn An",   "baove1",  "huynguyenthanh12406@gmail.com",   passwordEncoder.encode("baove123"), "staff");
+            baove1.setVerified(true);
+            staffRepo.save(baove1);
+            
+            StaffAccount baove2 = new StaffAccount("BV002", "Trần Thị Bình",   "baove2",  "huyth1204@gmail.com",             passwordEncoder.encode("baove123"), "staff");
+            baove2.setVerified(true);
+            staffRepo.save(baove2);
         }
 
         // Khởi tạo demo data: xe đang đỗ và lịch sử giao dịch

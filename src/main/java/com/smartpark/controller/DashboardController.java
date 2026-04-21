@@ -3,9 +3,11 @@ package com.smartpark.controller;
 import com.smartpark.model.StaffAccount;
 import com.smartpark.repository.BookingRepository;
 import com.smartpark.repository.StaffAccountRepository;
+import com.smartpark.service.AccountVerificationService;
 import com.smartpark.service.BookingService;
 import com.smartpark.service.ParkingService;
 import com.smartpark.service.ParkingSlotService.SlotStats;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,17 +27,20 @@ public class DashboardController {
     private final BookingService bookingService;
     private final BookingRepository bookingRepo;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AccountVerificationService verificationService;
 
     public DashboardController(ParkingService slotService,
                                StaffAccountRepository staffRepo,
                                BookingService bookingService,
                                BookingRepository bookingRepo,
-                               BCryptPasswordEncoder passwordEncoder) {
-        this.slotService     = slotService;
-        this.staffRepo       = staffRepo;
-        this.bookingService  = bookingService;
-        this.bookingRepo     = bookingRepo;
-        this.passwordEncoder = passwordEncoder;
+                               BCryptPasswordEncoder passwordEncoder,
+                               AccountVerificationService verificationService) {
+        this.slotService          = slotService;
+        this.staffRepo            = staffRepo;
+        this.bookingService       = bookingService;
+        this.bookingRepo          = bookingRepo;
+        this.passwordEncoder      = passwordEncoder;
+        this.verificationService  = verificationService;
     }
 
     // ── LOGIN ─────────────────────────────────────────────────────────────────
@@ -67,6 +72,19 @@ public class DashboardController {
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/login";
+    }
+
+    // ── VERIFY ACCOUNT ────────────────────────────────────────────────────────
+
+    @GetMapping("/verify-account")
+    public String verifyAccountPage(@RequestParam String token, Model model) {
+        String result = verificationService.verifyAccount(token);
+        if ("OK".equals(result)) {
+            model.addAttribute("success", "Xác nhận tài khoản thành công! Bạn có thể đăng nhập ngay.");
+        } else {
+            model.addAttribute("error", result);
+        }
+        return "login";
     }
 
     // ── PUBLIC MAP ────────────────────────────────────────────────────────────
@@ -138,6 +156,7 @@ public class DashboardController {
                              @RequestParam(required = false) String email,
                              @RequestParam String role,
                              HttpSession session,
+                             HttpServletRequest request,
                              RedirectAttributes ra) {
         if (requireAdmin(session) == null) return "redirect:/login";
         if (!StringUtils.hasText(fullName) || !StringUtils.hasText(username) || !StringUtils.hasText(password)) {
@@ -148,15 +167,38 @@ public class DashboardController {
             ra.addFlashAttribute("error", "Tên đăng nhập đã tồn tại");
             return "redirect:/admin";
         }
+        
         String prefix = "admin".equals(role) ? "AD" : "NV";
         long count = staffRepo.findAllByOrderByStaffCodeAsc().stream()
                 .filter(a -> a.getStaffCode().startsWith(prefix))
                 .count();
         String code = prefix + String.format("%03d", count + 1);
+        
+        String tempPassword = password; // Lưu mật khẩu tạm để gửi email
         StaffAccount acc = new StaffAccount(code, fullName.trim(), username.trim(), passwordEncoder.encode(password), role);
-        if (StringUtils.hasText(email)) acc.setEmail(email.trim().toLowerCase());
+        
+        if (StringUtils.hasText(email)) {
+            acc.setEmail(email.trim().toLowerCase());
+            acc.setVerified(false); // Chưa xác nhận
+            acc.setActive(false);   // Chưa kích hoạt
+        }
+        
         staffRepo.save(acc);
-        ra.addFlashAttribute("success", "Đã thêm tài khoản " + username.trim());
+        
+        // Gửi email xác nhận nếu có email
+        if (StringUtils.hasText(email)) {
+            String baseUrl = request.getScheme() + "://" + request.getServerName()
+                           + (request.getServerPort() != 80 && request.getServerPort() != 443 
+                              ? ":" + request.getServerPort() : "");
+            verificationService.sendVerificationEmail(acc, baseUrl, tempPassword);
+            ra.addFlashAttribute("success", "Đã tạo tài khoản " + username.trim() + ". Email xác nhận đã được gửi đến " + email);
+        } else {
+            acc.setVerified(true);
+            acc.setActive(true);
+            staffRepo.save(acc);
+            ra.addFlashAttribute("success", "Đã thêm tài khoản " + username.trim());
+        }
+        
         return "redirect:/admin";
     }
 
