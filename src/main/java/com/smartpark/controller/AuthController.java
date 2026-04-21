@@ -3,6 +3,7 @@ package com.smartpark.controller;
 import com.smartpark.model.StaffAccount;
 import com.smartpark.model.User;
 import com.smartpark.repository.StaffAccountRepository;
+import com.smartpark.service.AccountService;
 import com.smartpark.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired private UserService userService;
+    @Autowired private AccountService accountService;
     @Autowired private StaffAccountRepository staffRepo;
     @Autowired private BCryptPasswordEncoder passwordEncoder;
 
@@ -72,7 +74,7 @@ public class AuthController {
         return "redirect:/login?registered=true";
     }
 
-    // ── FORGOT PASSWORD ────────────────────────────────
+    // ── FORGOT PASSWORD (User) ────────────────────────────────
     @GetMapping("/forgot-password")
     public String forgotPage() { return "forgot-password"; }
 
@@ -88,7 +90,7 @@ public class AuthController {
         return "forgot-password";
     }
 
-    // ── RESET PASSWORD ─────────────────────────────────
+    // ── RESET PASSWORD (User) ─────────────────────────────────
     @GetMapping("/reset-password")
     public String resetPage(@RequestParam String token, Model model) {
         model.addAttribute("token", token);
@@ -104,5 +106,39 @@ public class AuthController {
         model.addAttribute("error", result);
         model.addAttribute("token", token);
         return "reset-password";
+    }
+
+    // ── FORGOT PASSWORD (Staff) ────────────────────────────────
+    @GetMapping("/staff/forgot-password")
+    public String staffForgotPage() { return "staff-forgot-password"; }
+
+    @PostMapping("/staff/forgot-password")
+    public String doStaffForgot(@RequestParam String email,
+                                HttpServletRequest request, Model model) {
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                         + ":" + request.getServerPort();
+        boolean sent = accountService.sendStaffResetLink(email, baseUrl);
+        // Luôn hiện thông báo thành công (tránh lộ email có tồn tại không)
+        model.addAttribute("success",
+            "Nếu email tồn tại, link đặt lại mật khẩu đã được gửi.");
+        return "staff-forgot-password";
+    }
+
+    // ── RESET PASSWORD (Staff) ─────────────────────────────────
+    @GetMapping("/staff/reset-password")
+    public String staffResetPage(@RequestParam String token, Model model) {
+        model.addAttribute("token", token);
+        return "staff-reset-password";
+    }
+
+    @PostMapping("/staff/reset-password")
+    public String doStaffReset(@RequestParam String token,
+                               @RequestParam String newPassword,
+                               Model model) {
+        String result = accountService.resetStaffPassword(token, newPassword);
+        if ("OK".equals(result)) return "redirect:/login?reset=true";
+        model.addAttribute("error", result);
+        model.addAttribute("token", token);
+        return "staff-reset-password";
     }
 }

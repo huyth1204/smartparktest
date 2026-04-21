@@ -18,4 +18,9 @@ public interface AccountService {
     StaffAccount updateAccount(Long id, String fullName, String role, boolean active, String password);
 
     void deleteAccount(Long id);
+
+    // Password Reset methods
+    boolean sendStaffResetLink(String email, String baseUrl);
+    
+    String resetStaffPassword(String token, String newPassword);
 }

@@ -19,5 +19,9 @@ public class PasswordResetToken {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToOne
+    @JoinColumn(name = "staff_account_id")
+    private StaffAccount staffAccount;
+
     private LocalDateTime expiryDate; // hết hạn sau 30 phút
 }
