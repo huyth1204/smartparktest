@@ -6,14 +6,16 @@ import com.smartpark.model.StaffAccount;
 import com.smartpark.repository.BookingRepository;
 import com.smartpark.repository.ParkingSlotRepository;
 import com.smartpark.repository.StaffAccountRepository;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     private final ParkingSlotRepository slotRepo;
     private final StaffAccountRepository staffRepo;
@@ -30,8 +32,9 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
-    public void run(String... args) {
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
+    public void initializeData() {
         // Khởi tạo parking slots - BATCH INSERT
         if (slotRepo.count() == 0) {
             java.util.List<ParkingSlot> slots = new java.util.ArrayList<>();
