@@ -123,7 +123,8 @@ public class DataInitializer implements CommandLineRunner {
         if (slot != null) {
             slot.setOccupied(true);
             slot.setLicensePlate(licensePlate);
-            slot.setCheckinTime(checkIn.toString());
+            // Format as HH:mm to match ParkingSlotService.checkin()
+            slot.setCheckinTime(checkIn.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
             slotRepo.save(slot);
         }
         

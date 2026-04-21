@@ -27,7 +27,7 @@ public class StaffAccount {
         this.email = email;
         this.password = password;
         this.role = role;
-        this.active = true;
+        // Don't set active here - let business logic decide
         this.verified = false; // Mặc định chưa xác nhận
     }
 

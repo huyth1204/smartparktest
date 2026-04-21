@@ -46,14 +46,13 @@ public class DashboardController {
     // ── VERIFY ACCOUNT ────────────────────────────────────────────────────────
 
     @GetMapping("/verify-account")
-    public String verifyAccountPage(@RequestParam String token, Model model) {
+    public String verifyAccountPage(@RequestParam String token, RedirectAttributes ra) {
         String result = verificationService.verifyAccount(token);
         if ("OK".equals(result)) {
-            model.addAttribute("token", token);
-            return "set-password";
+            return "redirect:/set-password?token=" + token;
         } else {
-            model.addAttribute("error", result);
-            return "login";
+            ra.addFlashAttribute("error", result);
+            return "redirect:/login";
         }
     }
 
