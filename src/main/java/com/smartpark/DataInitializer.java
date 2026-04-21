@@ -80,12 +80,12 @@ public class DataInitializer {
             
             // Lấy slots trống từ DB (10 xe máy + 5 ô tô)
             java.util.List<ParkingSlot> availableMotoSlots = slotRepo.findAll().stream()
-                .filter(s -> s.getVehicleType().equals("motorbike") && !s.isOccupied())
+                .filter(s -> s.getZone().equals("motorbike") && !s.isOccupied())
                 .limit(10)
                 .collect(java.util.stream.Collectors.toList());
             
             java.util.List<ParkingSlot> availableCarSlots = slotRepo.findAll().stream()
-                .filter(s -> s.getVehicleType().equals("car") && !s.isOccupied())
+                .filter(s -> s.getZone().equals("car") && !s.isOccupied())
                 .limit(5)
                 .collect(java.util.stream.Collectors.toList());
             

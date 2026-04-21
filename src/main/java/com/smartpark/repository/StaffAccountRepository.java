@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface StaffAccountRepository extends JpaRepository<StaffAccount, Long> {
     Optional<StaffAccount> findByUsername(String username);
+    Optional<StaffAccount> findByEmail(String email);
     List<StaffAccount> findAllByOrderByStaffCodeAsc();
     boolean existsByUsernameIgnoreCase(String username);
 }
