@@ -81,8 +81,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String doForgot(@RequestParam String email,
                            HttpServletRequest request, Model model) {
-        String baseUrl = request.getScheme() + "://" + request.getServerName()
-                         + ":" + request.getServerPort();
+        String baseUrl = request.getScheme() + "://" + request.getServerName();
         boolean sent = userService.sendResetLink(email, baseUrl);
         // Luôn hiện thông báo thành công (tránh lộ email có tồn tại không)
         model.addAttribute("success",
@@ -115,8 +114,7 @@ public class AuthController {
     @PostMapping("/staff/forgot-password")
     public String doStaffForgot(@RequestParam String email,
                                 HttpServletRequest request, Model model) {
-        String baseUrl = request.getScheme() + "://" + request.getServerName()
-                         + ":" + request.getServerPort();
+        String baseUrl = request.getScheme() + "://" + request.getServerName();
         boolean sent = accountService.sendStaffResetLink(email, baseUrl);
         // Luôn hiện thông báo thành công (tránh lộ email có tồn tại không)
         model.addAttribute("success",
