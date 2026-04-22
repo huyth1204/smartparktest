@@ -23,15 +23,18 @@ public class AccountServiceImpl implements AccountService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepo;
     private final EmailService emailService;
+    private final com.smartpark.repository.AccountVerificationTokenRepository verificationTokenRepo;
 
     public AccountServiceImpl(StaffAccountRepository staffRepo, 
                              BCryptPasswordEncoder passwordEncoder,
                              PasswordResetTokenRepository tokenRepo,
-                             EmailService emailService) {
+                             EmailService emailService,
+                             com.smartpark.repository.AccountVerificationTokenRepository verificationTokenRepo) {
         this.staffRepo       = staffRepo;
         this.passwordEncoder = passwordEncoder;
         this.tokenRepo       = tokenRepo;
         this.emailService    = emailService;
+        this.verificationTokenRepo = verificationTokenRepo;
     }
 
     @Override
@@ -74,9 +77,16 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public void deleteAccount(Long id) {
-        if (!staffRepo.existsById(id))
-            throw new ResourceNotFoundException("Tài khoản", "id", id);
+        StaffAccount staff = staffRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", "id", id));
+        
+        // Xóa các token liên quan trước
+        verificationTokenRepo.deleteByStaffAccount(staff);
+        tokenRepo.deleteByStaffAccount(staff);
+        
+        // Sau đó mới xóa staff account
         staffRepo.deleteById(id);
     }
 
