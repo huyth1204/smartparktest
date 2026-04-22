@@ -77,16 +77,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    @Transactional
     public void deleteAccount(Long id) {
-        StaffAccount staff = staffRepo.findById(id)
+        staffRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", "id", id));
-        
-        // Xóa các token liên quan trước
-        verificationTokenRepo.deleteByStaffAccount(staff);
-        tokenRepo.deleteByStaffAccount(staff);
-        
-        // Sau đó mới xóa staff account
         staffRepo.deleteById(id);
     }
 
